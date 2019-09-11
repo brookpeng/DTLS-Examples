@@ -477,6 +477,7 @@ void* connection_handle(void *info) {
 				case SSL_ERROR_NONE:
 					if (verbose) {
 						printf("Thread %lx: read %d bytes\n", id_function(), (int) len);
+						printf("buf[0] is %c\n", buf[0]);
 					}
 					reading = 0;
 					break;
@@ -509,6 +510,7 @@ void* connection_handle(void *info) {
 		}
 
 		if (len > 0) {
+			buf[0] = 's';
 			len = SSL_write(ssl, buf, len);
 
 			switch (SSL_get_error(ssl, len)) {
@@ -682,7 +684,9 @@ void start_server(int port, char *local_address) {
 		SSL_set_bio(ssl, bio, bio);
 		SSL_set_options(ssl, SSL_OP_COOKIE_EXCHANGE);
 
-		while (DTLSv1_listen(ssl, (BIO_ADDR *) &client_addr) <= 0);
+        // BIO_ADDR is not defined in openssl 1.0.2
+		//while (DTLSv1_listen(ssl, (BIO_ADDR *) &client_addr) <= 0);
+		while (DTLSv1_listen(ssl, &client_addr) <= 0);
 
 		info = (struct pass_info*) malloc (sizeof(struct pass_info));
 		memcpy(&info->server_addr, &server_addr, sizeof(struct sockaddr_storage));
@@ -879,6 +883,7 @@ void start_client(char *remote_address, char *local_address, int port, int lengt
 	while (!(SSL_get_shutdown(ssl) & SSL_RECEIVED_SHUTDOWN)) {
 
 		if (messagenumber > 0) {
+			buf[0] = 'c';
 			len = SSL_write(ssl, buf, length);
 
 			switch (SSL_get_error(ssl, len)) {
@@ -929,6 +934,7 @@ void start_client(char *remote_address, char *local_address, int port, int lengt
 				case SSL_ERROR_NONE:
 					if (verbose) {
 						printf("read %d bytes\n", (int) len);
+						printf("buf[0] is %c\n", buf[0]);
 					}
 					reading = 0;
 					break;
@@ -1023,7 +1029,8 @@ int main(int argc, char **argv)
 
 	if (argc > 1) goto cmd_err;
 
-	if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
+	// remove the version check
+	/*if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
 		printf("Warning: OpenSSL version mismatch!\n");
 		printf("Compiled against %s\n", OPENSSL_VERSION_TEXT);
 		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
@@ -1039,7 +1046,7 @@ int main(int argc, char **argv)
 	if (OPENSSL_VERSION_NUMBER < 0x1010102fL) {
 		printf("Error: %s is unsupported, use OpenSSL Version 1.1.1a or higher\n", OpenSSL_version(OPENSSL_VERSION));
 		exit(EXIT_FAILURE);
-	}
+	}*/
 
 	if (argc == 1)
 		start_client(*argv, local_addr, port, length, messagenumber);
