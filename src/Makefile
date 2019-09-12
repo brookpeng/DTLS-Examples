@@ -17,7 +17,8 @@ LIBS        = -lssl -lcrypto -pthread -lm -ldl
 
 all     : sctp udp
 sctp    : dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo
-udp     : dtls_udp_chargen dtls_udp_discard dtls_udp_echo
+#udp     : dtls_udp_chargen dtls_udp_discard dtls_udp_echo
+udp     :  dtls_udp_simple
 
 dtls_sctp_chargen: dtls_sctp_chargen.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_sctp_chargen dtls_sctp_chargen.c $(LFLAGS) $(LIBS)
@@ -37,6 +38,9 @@ dtls_udp_discard: dtls_udp_discard.c
 dtls_udp_echo: dtls_udp_echo.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_echo dtls_udp_echo.c $(LFLAGS) $(LIBS)
 
+dtls_udp_simple: dtls_udp_simple.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_simple dtls_udp_simple.c $(LFLAGS) $(LIBS)
+
 clean:
 	rm -f dtls_sctp_chargen
 	rm -f dtls_sctp_discard
@@ -44,3 +48,4 @@ clean:
 	rm -f dtls_udp_chargen
 	rm -f dtls_udp_discard
 	rm -f dtls_udp_echo
+	rm -f dtls_udp_simple
